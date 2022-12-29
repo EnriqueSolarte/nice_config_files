@@ -8,6 +8,7 @@ from collections import ChainMap
 import logging
 import numpy as np
 from omegaconf import ListConfig
+import git
 
 
 def load_auto_loading(cfg):
@@ -99,6 +100,10 @@ def get_default(cfg):
     logging.info(f"Loaded default cfg from: {df.default_cfg}")
     return cfg_dict
 
+def add_git_commit(cfg):
+    repo = git.Repo(search_parent_directories=True)
+    cfg['git_commit'] = repo.head._get_commit().name_rev
+    return cfg
 
 def update_cfg(d, u):
     for k, v in u.items():
@@ -125,6 +130,8 @@ def read_omega_cfg(cfg_file):
     global CFG_ROOT
     CFG_ROOT = os.path.dirname(cfg_file)
 
+    # ! add git commit
+    cfg_dict = add_git_commit(cfg_dict)
     if "default_cfg" in cfg_dict.keys():
         df = get_default(cfg_dict)
         update_cfg(df, cfg_dict)
